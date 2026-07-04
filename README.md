@@ -1,6 +1,40 @@
 # PDF Research Digest AI
 
-An elegant, automated web application that leverages Google Gemini's large context capabilities to compress 50+ page PDF documents (research papers, legal briefs, financial reports) into highly structured, high-density key fact sheets.
+An elegant, end-to-end AI-powered document compression pipeline that utilizes Large Language Models (LLMs) to ingest 50+ page PDF documents (scientific papers, technical manuals, financial briefs) and synthesize them into structured, high-density key fact sheets.
+
+---
+
+## 🧠 AI/ML Architecture & Pipeline
+
+Unlike traditional RAG (Retrieval-Augmented Generation) setups that chunk documents and lose context, this project leverages native **large-context multimodal models** to read entire files in their native visual and semantic format.
+
+```
+   [ Upload PDF ]
+         │
+         ▼
+[ Gemini File API ] ──► Extracts text, tables, figures, & visual layouts natively
+         │
+         ▼
+[ Gemini 2.5 Flash ] ──► System Instructions: Zero-shot structured compression
+         │
+         ▼
+ [ MD Fact Sheet ] ──► Rendered beautifully on the dashboard UI
+```
+
+### 1. Multimodal Document Ingestion
+By uploading the PDF directly to Google's **Gemini File API**, the model analyzes the document's layout natively. This retains crucial tables, graphs, equations, and visual relationships that standard text-only OCR parsers (like PyPDF or PDFMiner) destroy.
+
+### 2. Large-Context LLM Inference
+* **Model**: `gemini-2.5-flash`
+* **Context Capacity**: 1 Million+ tokens (equivalent to roughly 700,000 words, easily handling 50+ page documents).
+* **Benefits**: Prevents context fragmentation. The model processes the entire document in a single attention window, ensuring that correlations between early hypotheses and late results are preserved.
+
+### 3. Saturated Prompt Engineering
+The system utilizes a structured zero-shot compression prompt designed to strip academic noise and force the model to output a strictly formatted markdown schema:
+* **Objective/Hypothesis Extraction**: Isolate main claims.
+* **Methodology Details**: Quantify dataset sizes, baseline models, and parameters.
+* **Results & Findings**: Synthesize percentages, metrics, and comparisons.
+* **Limitations**: Capture crucial edge cases and boundary conditions.
 
 ---
 
@@ -34,20 +68,14 @@ pdf-digest/
 
 ## ⚡ Setup & Installation
 
-Follow these steps to configure the project on your machine:
-
 ### 1. Prerequisites
 Make sure you have **Python 3.9 or higher** installed.
 
-### 2. Clone/Move to Directory
-Navigate to your project directory:
+### 2. Setup Directory & Environment
+Clone or navigate to your project directory, then initialize your virtual environment:
 ```bash
 cd C:\Users\HP\Desktop\pdf-digest
-```
 
-### 3. Initialize Virtual Environment
-Create and activate an isolated Python environment:
-```bash
 # Create the environment
 python -m venv venv
 
@@ -58,14 +86,13 @@ python -m venv venv
 .\venv\Scripts\activate.bat
 ```
 
-### 4. Install Dependencies
-Install all required dependencies with pip:
+### 3. Install Dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-### 5. Setup Environment Variables
-Create a file named `.env` in the root folder of the project and add your Google Gemini API key:
+### 4. Configure API Key
+Create a `.env` file in the root folder of the project and add your Google Gemini API key:
 ```env
 GEMINI_API_KEY=your_gemini_api_key_here
 ```
@@ -81,14 +108,3 @@ streamlit run app.py
 ```
 
 Streamlit will launch a local development server and open a window in your default browser at `http://localhost:8501`.
-
----
-
-## 🔬 How It Works Under the Hood
-
-1. **Ingestion**: The user uploads a PDF file which Streamlit buffers into memory.
-2. **Local Buffer**: The app creates a temporary directory to save the file locally, generating a file path pointer.
-3. **Gemini Upload**: Using the `google-genai` SDK, the PDF is uploaded directly to the Gemini File API. This allows Gemini to parse text, formatting, tables, and images natively rather than relying on messy local OCR parsers.
-4. **Structured Inference**: Gemini 2.5 Flash is invoked with a custom system prompt that acts as a structural guide to extract core objectives, methodologies, quantitative outputs, and key data points.
-5. **Clean Up**: The temporary local file and the remote Gemini API file are deleted immediately after processing to respect user privacy and security guidelines.
-6. **Rendering & Export**: The final structured markdown text is rendered inside a beautiful customized UI container along with a file download handler.
